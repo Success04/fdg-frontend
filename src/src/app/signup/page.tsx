@@ -8,14 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { validationRegistSchema } from "@@/src/validationSchema";
 
 interface Error {
-  email: [];
-  password: [];
-  passwordConfirm: [];
+  email: string[];
+  password: string[];
+  passwordConfirm: string[];
 }
 
 const Page = () => {
   const { data: session, status } = useSession();
-  const [resError, setResError] = useState<Error>();
+  const [resError, setResError] = useState<Error | null>(null);
 
   const {
     register,
@@ -27,28 +27,25 @@ const Page = () => {
     resolver: zodResolver(validationRegistSchema),
   });
 
-  //セッション判定
   if (session) redirect("/");
 
-  //登録処理
   const handleRegist = async (data: any) => {
-    //フォーム取得
-    const email = data.email;
-    const password = data.password;
+    const { email, password } = data;
     const res = await fetch("/api/signUp", {
       body: JSON.stringify(data),
       headers: {
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       method: "POST",
     });
     if (res.ok) {
-      signIn("credentials", { email: email, password: password });
+      signIn("credentials", { email, password });
     } else {
       const resError = await res.json();
       setResError(resError.errors);
     }
   };
+
   return (
     <>
       <div className="flex flex-col w-full h-screen text-sm items-center justify-center">

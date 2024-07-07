@@ -1,12 +1,9 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "@@/lib/Prisma";
 
 const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -15,16 +12,28 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        let user = null; // `try`ブロックの外で`user`を宣言
         try {
-          // メールアドレス存在チェック
-          user = await prisma.user.findUnique({
-            where: { email: credentials?.email },
+          const res = await fetch(`${process.env.BACKEND_API_BASE_URL}/api/v1/sign_in`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: credentials?.email,
+              password: credentials?.password,
+            }),
           });
+
+          if (!res.ok) {
+            throw new Error('Invalid email or password');
+          }
+
+          const data = await res.json();
+          return data.user;
         } catch (error) {
-          return null; // エラーが発生した場合はnullを返す
+          console.error(error);
+          return null;
         }
-        return user;
       },
     }),
     GoogleProvider({

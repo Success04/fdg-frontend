@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +9,7 @@ import { validationLoginSchema } from "@@/src/validationSchema";
 
 const Page = () => {
   const { data: session, status } = useSession();
-  const [resError, setResError] = useState<Error>();
+  const [resError, setResError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -21,26 +20,25 @@ const Page = () => {
     resolver: zodResolver(validationLoginSchema),
   });
 
-  //セッション判定
   if (session) redirect("/");
 
   const handleLogin = async (data: any) => {
-    const email = data.email;
-    const password = data.password;
+    const { email, password } = data;
     const res = await fetch("/api/signIn", {
       body: JSON.stringify(data),
       headers: {
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       method: "POST",
     });
     if (res.ok) {
-      signIn("credentials", { email: email, password: password });
+      signIn("credentials", { email, password });
     } else {
       const resError = await res.json();
       setResError(resError.errors);
     }
   };
+
   return (
     <>
       <div className="flex flex-col w-full h-screen text-sm items-center justify-center">
