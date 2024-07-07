@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   const { email, password } = data;
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/sign_in`, {
+    const res = await fetch(`${process.env.BACKEND_API_BASE_URL}/api/v1/sign_in`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
